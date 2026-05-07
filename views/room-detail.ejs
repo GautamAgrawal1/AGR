@@ -1,0 +1,290 @@
+<%- include('partials/header') %>
+
+<div style="padding:100px 24px 80px;max-width:1100px;margin:0 auto;background:var(--cream);min-height:100vh;">
+  <a href="/rooms" style="color:var(--text-light);font-size:13px;display:inline-flex;align-items:center;gap:6px;margin-bottom:32px;transition:color 0.2s;" onmouseover="this.style.color='var(--terracotta)'" onmouseout="this.style.color='var(--text-light)'">← Back to Rooms</a>
+
+  <% if(locals.error) { %>
+    <div style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:14px 18px;border-radius:10px;margin-bottom:24px;font-size:14px;">❌ <%= decodeURIComponent(error) %></div>
+  <% } %>
+
+  <div style="display:grid;grid-template-columns:1fr 420px;gap:48px;align-items:start;">
+
+    <!-- LEFT — Room Info + Reviews -->
+    <div>
+      <!-- Room Slideshow -->
+      <div style="height:340px;border-radius:16px;overflow:hidden;margin-bottom:28px;border:1px solid var(--border);box-shadow:var(--shadow-md);position:relative;background:linear-gradient(135deg,var(--cream2),var(--cream3));">
+        <% const allPhotos = room.images && room.images.length ? room.images : (room.coverImage ? [room.coverImage] : []); %>
+        <% if(allPhotos.length > 0) { %>
+          <% allPhotos.forEach((photo, i) => { %>
+            <img src="<%= photo %>" alt="<%= room.name %>"
+              style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 0.7s ease;opacity:<%= i===0?'1':'0' %>;"
+              class="room-slide">
+          <% }) %>
+          <% if(allPhotos.length > 1) { %>
+            <!-- Prev/Next arrows -->
+            <button onclick="roomSlide(-1)" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;z-index:2;">‹</button>
+            <button onclick="roomSlide(1)"  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;z-index:2;">›</button>
+            <!-- Dots -->
+            <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:2;">
+              <% allPhotos.forEach((_, i) => { %>
+                <div style="width:7px;height:7px;border-radius:50%;background:<%= i===0?'white':'rgba(255,255,255,0.5)' %>;transition:all 0.3s;" class="room-dot"></div>
+              <% }) %>
+            </div>
+            <!-- Photo count -->
+            <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.5);color:white;padding:3px 10px;border-radius:99px;font-size:11px;z-index:2;">
+              <span id="roomSlideCount">1</span> / <%= allPhotos.length %>
+            </div>
+          <% } %>
+        <% } else { %>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;">
+            <span style="font-size:80px;"><%= room.type==='Suite'?'👑':room.type==='Deluxe AC'?'❄️':room.type==='Dormitory'?'🛏️':'🏠' %></span>
+            <p style="color:var(--text-light);font-size:14px;">No photo yet</p>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Room Details -->
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:24px;box-shadow:var(--shadow-sm);">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:16px;color:var(--text);">Room Details</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--cream);border-radius:8px;padding:12px 14px;">
+            <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Room No.</p>
+            <p style="font-weight:600;color:var(--text);">Room <%= room.roomNumber %></p>
+          </div>
+          <div style="background:var(--cream);border-radius:8px;padding:12px 14px;">
+            <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Floor</p>
+            <p style="font-weight:600;color:var(--text);">Floor <%= room.floor %></p>
+          </div>
+          <div style="background:var(--cream);border-radius:8px;padding:12px 14px;">
+            <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Capacity</p>
+            <p style="font-weight:600;color:var(--text);">Up to <%= room.capacity %> guests</p>
+          </div>
+          <div style="background:var(--cream);border-radius:8px;padding:12px 14px;">
+            <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Bed Type</p>
+            <p style="font-weight:600;color:var(--text);"><%= room.bedType %></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amenities -->
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:24px;box-shadow:var(--shadow-sm);">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin-bottom:16px;color:var(--text);">Amenities</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <% if(room.amenities.hasWifi){%><span style="background:var(--cream);border:1px solid var(--border);color:var(--text-mid);font-size:13px;padding:7px 14px;border-radius:8px;">📶 Free WiFi</span><%}%>
+          <% if(room.amenities.hasAC){%><span style="background:var(--cream);border:1px solid var(--border);color:var(--text-mid);font-size:13px;padding:7px 14px;border-radius:8px;">❄️ Air Conditioning</span><%}%>
+          <% if(room.amenities.has24x7AC){%><span style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;padding:7px 14px;border-radius:8px;font-weight:500;">⚡ 24×7 AC</span><%}%>
+          <% if(room.amenities.hasPowerBackup){%><span style="background:var(--cream);border:1px solid var(--border);color:var(--text-mid);font-size:13px;padding:7px 14px;border-radius:8px;">🔋 Power Backup</span><%}%>
+          <% if(room.amenities.hasRoomService){%><span style="background:var(--cream);border:1px solid var(--border);color:var(--text-mid);font-size:13px;padding:7px 14px;border-radius:8px;">🛎️ Room Service</span><%}%>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <% if(reviews.length > 0) { %>
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);">
+          <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin-bottom:16px;color:var(--text);">Guest Reviews</h2>
+          <% reviews.forEach(r => { %>
+            <div style="border-bottom:1px solid var(--border);padding:14px 0;" >
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:14px;font-weight:600;color:var(--text);"><%= r.guest.name %></span>
+                <span style="color:var(--gold);font-size:13px;font-weight:600;">⭐ <%= r.rating %>/5</span>
+              </div>
+              <p style="color:var(--text-mid);font-size:13px;font-style:italic;line-height:1.6;">"<%= r.comment %>"</p>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- RIGHT — Sticky Booking Card -->
+    <div style="position:sticky;top:100px;">
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:28px;box-shadow:var(--shadow-lg);">
+
+        <span style="background:var(--terra-bg);color:var(--terracotta);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:99px;border:1px solid #fca5a5;font-weight:600;"><%= room.type %></span>
+
+        <h1 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;margin:12px 0 6px;color:var(--text);"><%= room.name %></h1>
+        <p style="color:var(--text-light);font-size:13px;margin-bottom:16px;line-height:1.6;"><%= room.description %></p>
+
+        <!-- Price Box -->
+        <div style="background:var(--cream2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;">
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
+            <span style="font-size:14px;color:var(--text-light);text-decoration:line-through;">₹<%= room.pricing.originalPrice %></span>
+            <span style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:var(--terracotta);">₹<%= room.pricing.offerPrice %></span>
+            <span style="font-size:12px;color:var(--text-light);">/ night</span>
+          </div>
+          <p style="font-size:12px;color:#166534;font-weight:500;">You save ₹<%= room.pricing.originalPrice - room.pricing.offerPrice %> per night!</p>
+        </div>
+
+        <!-- Booking Form -->
+        <% if(user) { %>
+          <form id="bookingForm">
+            <input type="hidden" name="roomId" value="<%= room._id %>">
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-weight:500;">Check In</label>
+              <input type="date" name="checkIn" id="checkIn" required style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div style="margin-bottom:12px;">
+              <label style="display:block;font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-weight:500;">Check Out</label>
+              <input type="date" name="checkOut" id="checkOut" required style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div style="margin-bottom:20px;">
+              <label style="display:block;font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-weight:500;">Adults</label>
+              <input type="number" name="adults" id="adults" value="1" min="1" max="<%= room.capacity %>" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+            </div>
+            <!-- Error message -->
+            <div id="bookingError" style="display:none;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;"></div>
+            <!-- Submit button -->
+            <button type="submit" id="bookBtn" style="width:100%;background:var(--terracotta);color:white;border:none;padding:14px;border-radius:9px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;">
+              Book &amp; Pay Now →
+            </button>
+          </form>
+        <% } else { %>
+          <a href="/login" style="display:block;width:100%;background:var(--terracotta);color:white;padding:14px;border-radius:9px;font-size:15px;font-weight:600;text-align:center;transition:all 0.2s;">Login to Book →</a>
+          <p style="text-align:center;margin-top:12px;font-size:13px;color:var(--text-light);">Don't have an account? <a href="/signup" style="color:var(--terracotta);font-weight:500;">Sign up</a></p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Razorpay SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+// -------------------------------------------------------
+// Room Slideshow
+// -------------------------------------------------------
+(function() {
+  const slides = document.querySelectorAll('.room-slide');
+  const dots   = document.querySelectorAll('.room-dot');
+  const count  = document.getElementById('roomSlideCount');
+  if (slides.length <= 1) return;
+  let cur = 0;
+  window.roomSlide = function(dir) {
+    slides[cur].style.opacity = '0';
+    dots[cur] && (dots[cur].style.background = 'rgba(255,255,255,0.5)');
+    cur = (cur + dir + slides.length) % slides.length;
+    slides[cur].style.opacity = '1';
+    dots[cur] && (dots[cur].style.background = 'white');
+    if (count) count.textContent = cur + 1;
+  };
+  setInterval(() => window.roomSlide(1), 4000);
+})();
+
+// -------------------------------------------------------
+// Set min date = today for date inputs
+// -------------------------------------------------------
+(function() {
+  const today = new Date().toISOString().split('T')[0];
+  const ci = document.getElementById('checkIn');
+  const co = document.getElementById('checkOut');
+  if (ci) ci.min = today;
+  if (co) co.min = today;
+  if (ci) ci.addEventListener('change', () => { if (co) co.min = ci.value; });
+})();
+
+// -------------------------------------------------------
+// Booking Form — JS intercept → booking create → Razorpay open
+// -------------------------------------------------------
+document.getElementById('bookingForm')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const btn      = document.getElementById('bookBtn');
+  const errBox   = document.getElementById('bookingError');
+  const roomId   = document.querySelector('[name="roomId"]').value;
+  const checkIn  = document.getElementById('checkIn').value;
+  const checkOut = document.getElementById('checkOut').value;
+  const adults   = document.getElementById('adults').value;
+
+  // Validation
+  if (!checkIn || !checkOut) {
+    errBox.textContent = 'Check-in aur Check-out dates select karo.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btn.textContent = '⏳ Booking ho rahi hai...';
+  errBox.style.display = 'none';
+
+  try {
+    // Step 1: Booking create karo + Razorpay order lo
+    const bookRes = await fetch('/rooms/book-now', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ roomId, checkIn, checkOut, adults }),
+    });
+
+    const bookData = await bookRes.json();
+
+    if (!bookData.success) {
+      errBox.textContent = bookData.message || 'Booking failed. Dobara try karo.';
+      errBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Book & Pay Now →';
+      return;
+    }
+
+    btn.textContent = '💳 Payment window khul rahi hai...';
+
+    // Step 2: Razorpay checkout open karo
+    const options = {
+      key:         bookData.keyId,
+      amount:      bookData.order.amount,
+      currency:    bookData.order.currency,
+      order_id:    bookData.order.id,
+      name:        'AGR Hotel',
+      description: `Room Booking — ${checkIn} to ${checkOut}`,
+      image:       '/images/logo.png',
+      prefill: {
+        name:  '<%= user ? user.name : "" %>',
+        email: '<%= user ? user.email : "" %>',
+      },
+      theme: { color: '#C0392B' },
+      modal: {
+        ondismiss: function() {
+          btn.disabled = false;
+          btn.textContent = 'Book & Pay Now →';
+        }
+      },
+      handler: async function(response) {
+        btn.textContent = '✅ Payment verify ho raha hai...';
+
+        // Step 3: Payment verify karo
+        const verifyRes = await fetch('/api/payment/booking/verify', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            bookingId:            bookData.booking.id,
+            razorpay_order_id:    response.razorpay_order_id,
+            razorpay_payment_id:  response.razorpay_payment_id,
+            razorpay_signature:   response.razorpay_signature,
+          }),
+        });
+
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success) {
+          // ✅ Payment done — dashboard pe redirect karo with success flag
+          window.location.href = `/dashboard?booked=true&bookingId=${bookData.booking.id}&paid=true`;
+        } else {
+          errBox.textContent = '❌ Payment verify nahi hua. Support se contact karo.';
+          errBox.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Book & Pay Now →';
+        }
+      },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    errBox.textContent = 'Network error. Internet check karo aur dobara try karo.';
+    errBox.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Book & Pay Now →';
+  }
+});
+</script>
+<%- include('partials/footer') %>

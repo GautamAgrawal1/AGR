@@ -1,0 +1,450 @@
+<%- include('partials/header') %>
+
+<!-- HERO -->
+<section class="hero" style="background-image: url('https://res.cloudinary.com/dlka5fhcp/image/upload/v1778094666/9354951_hzxto3.jpg');">
+  <div class="hero-content">
+    <div class="hero-left">
+      <p class="hero-eyebrow">Welcome to AGR Hotel</p>
+      <h1 class="hero-title">Luxury Stay,<br><em>Warm Heart</em></h1>
+      <p class="hero-subtitle">Experience genuine Indian hospitality in the heart of Mughalsarai. Comfortable rooms, delicious food, and memories that last a lifetime.</p>
+      <div class="hero-badges">
+        <span class="hero-badge">⭐ Top Rated</span>
+        <span class="hero-badge">❄️ 24×7 AC</span>
+        <span class="hero-badge">📶 Free WiFi</span>
+        <span class="hero-badge">🚉 Near Railway Station</span>
+      </div>
+      <div class="hero-cta">
+        <a href="/rooms" class="btn-primary">Browse Rooms</a>
+        <a href="#contact" class="btn-primary">Contact Us</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-card">
+        <h3 class="hero-card-title">Check Availability</h3>
+        <form action="/rooms" method="GET">
+          <div class="form-field">
+            <label>Check In</label>
+            <input type="date" name="checkIn" required>
+          </div>
+          <div class="form-field">
+            <label>Check Out</label>
+            <input type="date" name="checkOut" required>
+          </div>
+          <div class="form-field">
+            <label>Room Type</label>
+            <select name="type">
+              <option value="">Any Type</option>
+              <option value="Suite">👑 Maharaja Suite</option>
+              <option value="Deluxe AC">❄️ Deluxe AC</option>
+              <option value="Non-AC">🏠 Non-AC</option>
+              <option value="Dormitory">🛏️ Dormitory</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%;margin-top:4px;">Check Availability →</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat">
+      <span class="stat-num">32+</span>
+      <span class="stat-label">Rooms</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">₹300</span>
+      <span class="stat-label">Starting From</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">24×7</span>
+      <span class="stat-label">Power Backup</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-num">150+</span>
+      <span class="stat-label">Menu Items</span>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-text reveal-left">
+        <p class="section-eyebrow">About Us</p>
+        <h2 class="section-title">A Stay You'll <em>Remember</em></h2>
+        <p>AGR Hotel is your home away from home in Mughalsarai. Located right behind Kali Mandir on GT Road near Railway VIP Gate No.1, we offer warm hospitality with modern comforts at affordable prices.</p>
+        <ul class="about-list">
+          <li>14 Deluxe AC rooms with 24×7 cooling</li>
+          <li>7 Non-AC rooms for budget travelers</li>
+          <li>Maharaja Suite for a royal experience</li>
+          <li>Dormitory beds from just ₹300/night</li>
+          <li>In-house restaurant with 150+ dishes</li>
+          <li>Ice cream parlour on premises</li>
+        </ul>
+        <a href="/rooms" class="btn-primary">Explore Rooms</a>
+      </div>
+      <div class="reveal-right">
+        <div class="about-img-frame">
+          <div id="hotelSlideshow" style="height:420px;border-radius:16px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--cream2),var(--cream3));border:1px solid var(--border);">
+            <% if(typeof hotelPhotos !== 'undefined' && hotelPhotos && hotelPhotos.length > 0) { %>
+              <% hotelPhotos.forEach(function(photo, i) { %>
+                <img src="<%= photo %>" alt="AGR Hotel"
+                  class="hotel-slide"
+                  style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 0.8s ease;opacity:<%= i===0?1:0 %>;">
+              <% }) %>
+              <% if(hotelPhotos.length > 1) { %>
+                <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:2;">
+                  <% hotelPhotos.forEach(function(_, i) { %>
+                    <div class="hotel-dot" style="width:7px;height:7px;border-radius:50%;cursor:pointer;background:<%= i===0?'white':'rgba(255,255,255,0.5)' %>;transition:all 0.3s;"></div>
+                  <% }) %>
+                </div>
+                <button onclick="hotelSlide(-1)" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;z-index:2;">‹</button>
+                <button onclick="hotelSlide(1)"  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;z-index:2;">›</button>
+              <% } %>
+            <% } else { %>
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;">
+                <span style="font-size:64px;">🏨</span>
+                <p style="color:var(--text-light);font-size:14px;">AGR Hotel</p>
+              </div>
+            <% } %>
+          </div>
+          <div class="about-badge">
+            <span class="badge-num">4.8★</span>
+            <span class="badge-text">Guest Rating</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED ROOMS -->
+<section class="featured-rooms">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Our Rooms</p>
+      <h2 class="section-title">Choose Your Perfect Stay</h2>
+      <p class="section-subtitle">From budget dormitories to royal suites — we have something for everyone.</p>
+    </div>
+    <div class="rooms-grid stagger">
+      <% featuredRooms.forEach(room => { %>
+      <div class="room-card">
+        <div class="room-card-img">
+          <% if (room.coverImage) { %>
+            <img src="<%= room.coverImage %>" alt="<%= room.name %>">
+          <% } else { %>
+            <div class="room-img-placeholder">
+              <span><%= room.type==='Suite'?'👑':room.type==='Deluxe AC'?'❄️':room.type==='Dormitory'?'🛏️':'🏠' %></span>
+            </div>
+          <% } %>
+          <div class="room-type-badge"><%= room.type %></div>
+          <% if (room.amenities.has24x7AC) { %><div class="room-feature-badge">24×7 AC</div><% } %>
+        </div>
+        <div class="room-card-body">
+          <div class="room-card-top">
+            <h3><%= room.name %></h3>
+            <% if (room.averageRating > 0) { %><span class="room-rating">⭐ <%= room.averageRating %></span><% } %>
+          </div>
+          <p class="room-desc"><%= room.description ? room.description.substring(0,80)+'...' : 'Comfortable stay with all amenities.' %></p>
+          <div class="room-amenities">
+            <% if(room.amenities.hasWifi){%><span>📶 WiFi</span><%}%>
+            <% if(room.amenities.hasAC){%><span>❄️ AC</span><%}%>
+            <% if(room.amenities.hasPowerBackup){%><span>⚡ Power</span><%}%>
+            <% if(room.amenities.hasRoomService){%><span>🛎️ Service</span><%}%>
+          </div>
+          <div class="room-card-footer">
+            <div class="room-price">
+              <span class="price-original">₹<%= room.pricing.originalPrice %></span>
+              <span class="price-offer">₹<%= room.pricing.offerPrice %></span>
+              <span class="price-per">/night</span>
+            </div>
+            <a href="/rooms/<%= room._id %>" class="btn-book">Book Now</a>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <div class="section-cta reveal">
+      <a href="/rooms" class="btn-outline">View All Rooms →</a>
+    </div>
+  </div>
+</section>
+
+<!-- AMENITIES -->
+<section class="amenities">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Facilities</p>
+      <h2 class="section-title">Everything You <em>Need</em></h2>
+    </div>
+    <div class="amenities-grid stagger">
+      <div class="amenity-card">
+        <div class="amenity-icon">📶</div>
+        <h3>Free Wi-Fi</h3>
+        <p>High-speed internet in all rooms and common areas — stay connected always.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">⚡</div>
+        <h3>24×7 Power Backup</h3>
+        <p>Never worry about power cuts — our generator ensures uninterrupted supply.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">❄️</div>
+        <h3>24×7 AC Service</h3>
+        <p>Deluxe AC rooms stay cool even during power cuts — exclusive inverter AC.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">🍽️</div>
+        <h3>Restaurant</h3>
+        <p>150+ dishes — South Indian, Chinese, Biryani, Thali and more.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">🛎️</div>
+        <h3>Room Service</h3>
+        <p>Order food and get essentials delivered to your room anytime.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">🍦</div>
+        <h3>Ice Cream Parlour</h3>
+        <p>8 flavours of fresh ice cream — single and double scoops available.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OWNERS -->
+<section class="owners">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Our Team</p>
+      <h2 class="section-title">Meet the <em>Owners</em></h2>
+      <p class="section-subtitle">Three passionate individuals dedicated to making your stay unforgettable.</p>
+    </div>
+    <div class="owners-grid stagger">
+      <% owners.forEach((owner, i) => { %>
+      <div class="owner-card">
+        <div class="owner-avatar">
+          <% if(owner.photo) { %>
+            <img src="<%= owner.photo %>" alt="<%= owner.name || 'Owner' %>">
+          <% } else { %>
+            <span>👤</span>
+          <% } %>
+        </div>
+        <h3 class="owner-name"><%= owner.name || 'Owner ' + (i+1) %></h3>
+        <p class="owner-role"><%= owner.role || 'Co-Founder' %></p>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="location" id="location">
+  <div class="container">
+    <div class="location-grid">
+      <div class="reveal-left">
+        <p class="section-eyebrow">Find Us</p>
+        <h2 class="section-title">Prime <em>Location</em></h2>
+        <div class="location-address">
+          <p>
+            <strong>📍 Railway VIP Gate No.1</strong><br>
+            Behind Kali Mandir, G.T. Road,<br>
+            Mughalsarai, Uttar Pradesh
+          </p>
+        </div>
+        <div class="nearby-list">
+          <div class="nearby-item">
+            <span class="nearby-icon">🚉</span>
+            <div class="nearby-text">
+              <strong>Mughalsarai Railway Station</strong>
+              <span>Directly opposite — 2 minute walk</span>
+            </div>
+          </div>
+          <div class="nearby-item">
+            <span class="nearby-icon">🛍️</span>
+            <div class="nearby-text">
+              <strong>Main Market</strong>
+              <span>Adjacent — shops, bazaars right next door</span>
+            </div>
+          </div>
+          <div class="nearby-item">
+            <span class="nearby-icon">🛕</span>
+            <div class="nearby-text">
+              <strong>Kali Mandir</strong>
+              <span>Right next to hotel — sacred landmark</span>
+            </div>
+          </div>
+          <div class="nearby-item">
+            <span class="nearby-icon">🛣️</span>
+            <div class="nearby-text">
+              <strong>G.T. Road (NH 2)</strong>
+              <span>On the main highway — easy access</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal-right">
+        <div style="border-radius:16px;overflow:hidden;box-shadow:var(--shadow-md);border:1px solid var(--border);">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.6711689006943!2d83.11996359999999!3d25.281644899999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x398e3ae24944f0cb%3A0x7d35ca96a1ca6d31!2sAgrawal%20Guest%20House%20%26%20Ac%20Restaurant!5e0!3m2!1sen!2sin!4v1777231339401!5m2!1sen!2sin"
+            width="100%" height="320" style="border:0;display:block;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+          <div style="background:var(--white);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <p style="font-weight:600;font-size:14px;color:var(--text);">AGR Hotel, Mughalsarai</p>
+              <p style="font-size:12px;color:var(--text-light);">Railway VIP Gate No.1, Behind Kali Mandir, G.T. Road</p>
+            </div>
+            <a href="https://maps.google.com/?q=Agrawal+Guest+House+AC+Restaurant+Mughalsarai" target="_blank"
+              style="background:var(--terracotta);color:white;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;">
+              Get Directions →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<% if (reviews.length > 0) { %>
+<section class="reviews">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Guest Reviews</p>
+      <h2 class="section-title">What Our Guests <em>Say</em></h2>
+    </div>
+    <div class="reviews-grid stagger">
+      <% reviews.forEach(review => { %>
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-avatar"><%= review.guest.name.charAt(0).toUpperCase() %></div>
+          <div>
+            <p class="review-name"><%= review.guest.name %></p>
+            <p class="review-room"><%= review.room ? review.room.name : '' %></p>
+          </div>
+          <div class="review-stars">
+            <% for(let i=1;i<=5;i++){%><span class="<%= i<=review.rating?'star-filled':'star-empty' %>">★</span><%}%>
+          </div>
+        </div>
+        <p class="review-comment">"<%= review.comment %>"</p>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Get In Touch</p>
+      <h2 class="section-title">Contact <em>Us</em></h2>
+      <p class="section-subtitle">Have a question or want to make a reservation? We'd love to hear from you.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="reveal-left">
+        <p class="contact-info-text" style="font-size:15px;color:var(--text-mid);line-height:1.8;margin-bottom:28px;">
+          Whether you need help with booking, have a special request, or want to know more about our facilities — our team is always ready to help!
+        </p>
+        <div class="contact-details">
+          <div class="contact-detail">
+            <span class="contact-detail-icon">📍</span>
+            <div>
+              <strong>Address</strong>
+              <span>Railway VIP Gate No.1, Behind Kali Mandir, G.T. Road, Mughalsarai</span>
+            </div>
+          </div>
+          <div class="contact-detail">
+            <span class="contact-detail-icon">📞</span>
+            <div>
+              <strong>Phone</strong>
+              <span>+91 XXXXX XXXXX</span>
+            </div>
+          </div>
+          <div class="contact-detail">
+            <span class="contact-detail-icon">✉️</span>
+            <div>
+              <strong>Email</strong>
+              <span>info@agrhotel.com</span>
+            </div>
+          </div>
+          <div class="contact-detail">
+            <span class="contact-detail-icon">🕐</span>
+            <div>
+              <strong>Check-in / Check-out</strong>
+              <span>Check-in: 12:00 PM · Check-out: 11:00 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal-right">
+        <div class="contact-form">
+          <h3>Send a Message</h3>
+          <div id="contactResult" style="display:none;"></div>
+          <form id="contactForm">
+            <div class="form-field">
+              <label>Your Name</label>
+              <input type="text" name="name" required placeholder="Aapka naam">
+            </div>
+            <div class="form-field">
+              <label>Email</label>
+              <input type="email" name="email" required placeholder="aapka@email.com">
+            </div>
+            <div class="form-field">
+              <label>Phone (Optional)</label>
+              <input type="tel" name="phone" placeholder="+91 XXXXX XXXXX">
+            </div>
+            <div class="form-field">
+              <label>Message</label>
+              <textarea name="message" required placeholder="Apna sawaal ya request likhiye..."></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;">Send Message →</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-box reveal">
+      <p class="section-eyebrow">Ready to Stay?</p>
+      <h2>Book Your Room Today</h2>
+      <p>Starting from just ₹300/night. Best prices guaranteed. No hidden charges.</p>
+      <div class="cta-buttons">
+        <a href="/rooms" class="btn-white">Browse Rooms</a>
+        <a href="tel:+91XXXXXXXXXX" class="btn-outline-white">📞 Call Us Now</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Hotel Slideshow
+(function() {
+  const slides = document.querySelectorAll('.hotel-slide');
+  const dots   = document.querySelectorAll('.hotel-dot');
+  if (slides.length <= 1) return;
+  let cur = 0;
+  function go(n) {
+    slides[cur].style.opacity = '0';
+    dots[cur] && (dots[cur].style.background = 'rgba(255,255,255,0.5)');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].style.opacity = '1';
+    dots[cur] && (dots[cur].style.background = 'white');
+  }
+  setInterval(() => go(cur + 1), 3500);
+})();
+</script>
+<%- include('partials/footer') %>

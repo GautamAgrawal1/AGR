@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">
+    <span class="logo-agr">AGR</span>
+    <span class="logo-hotel">HOTEL</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/rooms">Rooms</a></li>
+    <li><a href="/restaurant">Restaurant</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+
+  <div class="nav-actions">
+    <% if (user) { %>
+      <span class="nav-greeting">Namaste, <%= user.name.split(' ')[0] %></span>
+      <% if (user.role === 'ADMIN') { %>
+        <a href="/admin" class="btn-nav-outline">Admin Panel</a>
+      <% } %>
+      <a href="/dashboard" class="btn-nav">Dashboard</a>
+      <a href="/logout" class="btn-nav-ghost">Logout</a>
+    <% } else { %>
+      <a href="/login"  class="btn-nav-outline">Login</a>
+      <a href="/signup" class="btn-nav">Book Now</a>
+    <% } %>
+  </div>
+
+  <!-- Mobile menu toggle -->
+  <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/">Home</a>
+  <a href="/rooms">Rooms</a>
+  <a href="/restaurant">Restaurant</a>
+  <% if (user) { %>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/logout">Logout</a>
+  <% } else { %>
+    <a href="/login">Login</a>
+    <a href="/signup">Book Now</a>
+  <% } %>
+</div>

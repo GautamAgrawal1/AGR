@@ -1,0 +1,749 @@
+<%- include('../partials/header') %>
+
+<div style="padding:100px 24px 80px;max-width:1200px;margin:0 auto;background:var(--cream);min-height:100vh;">
+
+  <!-- Header -->
+  <div style="margin-bottom:40px;">
+    <p style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--terracotta);text-transform:uppercase;margin-bottom:8px;">Admin Panel</p>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:var(--text);">Dashboard</h1>
+    <p style="color:var(--text-light);font-size:14px;">Welcome, <%= user.name %></p>
+  </div>
+
+  <!-- STATS CARDS -->
+  <div id="statsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:48px;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow-sm);">
+      <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Guests</p>
+      <p id="stat-guests" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--terracotta);">—</p>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow-sm);">
+      <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Bookings</p>
+      <p id="stat-bookings" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--terracotta);">—</p>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow-sm);">
+      <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Active Guests</p>
+      <p id="stat-active" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--terracotta);">—</p>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow-sm);">
+      <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Revenue</p>
+      <p id="stat-revenue" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--terracotta);">—</p>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow-sm);">
+      <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Pending Orders</p>
+      <p id="stat-orders" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--terracotta);">—</p>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow-sm);">
+      <p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Today Check-ins</p>
+      <p id="stat-checkins" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--terracotta);">—</p>
+    </div>
+  </div>
+
+  <!-- TAB NAVIGATION -->
+  <div style="display:flex;gap:4px;margin-bottom:28px;background:var(--white);padding:6px;border-radius:12px;border:1px solid var(--border);width:fit-content;flex-wrap:wrap;">
+    <% ['Bookings','Orders','Revenue','Users','Menu Items','Add Menu Item','Hotel Photos','Room Photos','Owner Photos','Role Change'].forEach((tab,i) => { %>
+      <button onclick="showTab('<%= tab.replace(/\s+/g,'-').toLowerCase() %>')" id="tab-<%= tab.replace(/\s+/g,'-').toLowerCase() %>"
+        style="padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;background:<%= i===0?'var(--terracotta)':'transparent' %>;color:<%= i===0?'white':'var(--text-mid)' %>;">
+        <%= tab %>
+      </button>
+    <% }) %>
+  </div>
+
+  <!-- ============ TAB: BOOKINGS ============ -->
+  <div id="panel-bookings">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:20px;color:var(--text);">All Bookings</h2>
+      <div id="bookings-list"><p style="color:var(--text-light);">Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: ORDERS ============ -->
+  <div id="panel-orders" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:20px;color:var(--text);">Pending Orders</h2>
+      <div id="orders-list"><p style="color:var(--text-light);">Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: REVENUE ============ -->
+  <div id="panel-revenue" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:6px;color:var(--text);">Daily Revenue — Last 30 Days</h2>
+      <p style="color:var(--text-light);font-size:13px;margin-bottom:20px;">Har din ka revenue aur bookings</p>
+      <div id="revenue-list"><p style="color:var(--text-light);">Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: MENU ITEMS ============ -->
+  <div id="panel-menu-items" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--text);">Menu Items</h2>
+        <input type="text" id="menuSearch" placeholder="Search..." oninput="filterMenu()" style="background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-size:13px;outline:none;width:200px;">
+      </div>
+      <div id="menu-items-list"><p style="color:var(--text-light);">Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: USERS ============ -->
+  <div id="panel-users" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:20px;color:var(--text);">All Users</h2>
+      <div id="users-list"><p style="color:var(--text-light);">Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: ADD MENU ITEM ============ -->
+  <div id="panel-add-menu-item" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:32px;box-shadow:var(--shadow-sm);max-width:600px;">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:6px;color:var(--text);">Add Menu Item</h2>
+      <p style="color:var(--text-light);font-size:13px;margin-bottom:24px;">Restaurant mein naya dish add karo</p>
+      <div id="menuResult" style="display:none;margin-bottom:16px;"></div>
+      <form id="menuForm" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Item Name *</label>
+            <input type="text" name="name" required placeholder="e.g. Paneer Tikka" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Price (₹) *</label>
+            <input type="number" name="price" required placeholder="200" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Category *</label>
+            <select name="category" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+              <option value="Starter">Starter</option>
+              <option value="Main Course">Main Course</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Dessert">Dessert</option>
+              <option value="Beverage">Beverage</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Spice Level</label>
+            <select name="spiceLevel" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+              <option value="Mild">Mild</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Spicy">Spicy</option>
+              <option value="Extra Spicy">Extra Spicy</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Veg/Non-Veg</label>
+            <select name="isVeg" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+              <option value="true">🟢 Veg</option>
+              <option value="false">🔴 Non-Veg</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Prep Time (min)</label>
+            <input type="number" name="preparationTime" value="15" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Description</label>
+          <input type="text" name="description" placeholder="Short description (optional)" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+        </div>
+        <button type="button" onclick="addMenuItem()" style="background:var(--terracotta);color:white;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;width:fit-content;">Add to Menu →</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ TAB: HOTEL PHOTOS ============ -->
+  <div id="panel-hotel-photos" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:32px;box-shadow:var(--shadow-sm);max-width:600px;">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:6px;color:var(--text);">Hotel Photos</h2>
+      <p style="color:var(--text-light);font-size:13px;margin-bottom:24px;">Home page pe hotel ki photos upload karo — automatically slideshow mein aayengi</p>
+      <div id="hotelPhotoResult" style="display:none;margin-bottom:16px;"></div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Hotel Photos (Multiple select kar sakte ho)</label>
+          <input type="file" id="hotelPhotoInput" accept="image/*" multiple style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;">
+        </div>
+        <div id="hotelPhotoPreviewContainer" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <button onclick="uploadHotelPhotos()" style="background:var(--terracotta);color:white;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;width:fit-content;">Upload Photos →</button>
+      </div>
+      <!-- Existing Photos -->
+      <div style="margin-top:28px;">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:14px;color:var(--text);">Uploaded Photos</h3>
+        <div id="existingHotelPhotos" style="display:flex;gap:8px;flex-wrap:wrap;"><p style="color:var(--text-light);font-size:13px;">Loading...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: ROOM PHOTOS ============ -->
+  <div id="panel-room-photos" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:32px;box-shadow:var(--shadow-sm);max-width:600px;">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:6px;color:var(--text);">Room Photos Upload</h2>
+      <p style="color:var(--text-light);font-size:13px;margin-bottom:24px;">Ek ya multiple photos upload karo — pehli photo cover banega, baaki slideshow mein</p>
+      <div id="roomPhotoResult" style="display:none;margin-bottom:16px;"></div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Room Number</label>
+          <input type="text" id="roomNumInput" placeholder="e.g. 221, 215, DORM-1" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:500;">Photos (Multiple select kar sakte ho)</label>
+          <input type="file" id="roomPhotoInput" accept="image/*" multiple style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;">
+        </div>
+        <div id="roomPhotoPreviewContainer" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <button onclick="uploadRoomPhotos()" style="background:var(--terracotta);color:white;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;width:fit-content;">Upload Photos →</button>
+      </div>
+
+      <!-- Existing Room Photos -->
+      <div style="margin-top:28px;">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:6px;color:var(--text);">Uploaded Room Photos</h3>
+        <p style="color:var(--text-light);font-size:12px;margin-bottom:14px;">Room number dalo aur Load karo — phir kisi bhi photo ko delete kar sakte ho</p>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="text" id="loadRoomNumInput" placeholder="Room number dalo (e.g. 221)" style="flex:1;min-width:180px;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+          <button onclick="loadRoomPhotos()" style="background:var(--gold);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;">Load Photos</button>
+        </div>
+        <div id="existingRoomPhotosMsg" style="display:none;margin-bottom:12px;"></div>
+        <div id="existingRoomPhotosList" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: OWNER PHOTOS ============ -->
+  <div id="panel-owner-photos" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:32px;box-shadow:var(--shadow-sm);max-width:500px;">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:6px;color:var(--text);">Owner Photos</h2>
+      <p style="color:var(--text-light);font-size:13px;margin-bottom:24px;">Teeno owners ki photo aur naam update karo</p>
+      <div id="ownerResult" style="display:none;margin-bottom:16px;"></div>
+      <% [1,2,3].forEach(n => { %>
+        <div style="margin-bottom:24px;padding:20px;background:var(--cream);border-radius:10px;border:1px solid var(--border);">
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;">Owner <%= n %></p>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <input type="text" id="ownerName<%= n %>" placeholder="Owner <%= n %> ka naam" style="width:100%;background:var(--white);border:1.5px solid var(--border);color:var(--text);padding:9px 14px;border-radius:8px;font-size:13px;outline:none;">
+            <input type="text" id="ownerRole<%= n %>" placeholder="Role (e.g. Founder & Director)" style="width:100%;background:var(--white);border:1.5px solid var(--border);color:var(--text);padding:9px 14px;border-radius:8px;font-size:13px;outline:none;">
+            <input type="file" id="ownerPhoto<%= n %>" accept="image/*" style="width:100%;background:var(--white);border:1.5px solid var(--border);color:var(--text);padding:9px 14px;border-radius:8px;font-size:13px;">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button onclick="uploadOwnerPhoto(<%= n %>)" style="background:var(--gold);color:white;border:none;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">Save Owner <%= n %></button>
+              <button onclick="deleteOwnerPhoto(<%= n %>)" style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;">Delete Photo</button>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <!-- ============ TAB: ROLE CHANGE ============ -->
+  <div id="panel-role-change" style="display:none;">
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:32px;box-shadow:var(--shadow-sm);max-width:500px;">
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:6px;color:var(--text);">User Role Change</h2>
+      <p style="color:var(--text-light);font-size:13px;margin-bottom:24px;">Kisi bhi user ko STAFF ya ADMIN banao</p>
+      <div id="roleResult" style="display:none;margin-bottom:16px;"></div>
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:400px;">
+        <input type="text" id="userEmailInput" placeholder="User ka email" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+        <select id="roleSelect" style="width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;outline:none;">
+          <option value="GUEST">GUEST</option>
+          <option value="STAFF">STAFF</option>
+          <option value="ADMIN">ADMIN</option>
+        </select>
+        <button onclick="changeRole()" style="background:var(--terracotta);color:white;border:none;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;width:fit-content;">Update Role →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ================================================
+// TAB SWITCHING
+// ================================================
+function showTab(name) {
+  const panels = document.querySelectorAll('[id^="panel-"]');
+  panels.forEach(p => p.style.display = 'none');
+  document.getElementById('panel-' + name).style.display = 'block';
+
+  const tabs = document.querySelectorAll('[id^="tab-"]');
+  tabs.forEach(t => { t.style.background = 'transparent'; t.style.color = 'var(--text-mid)'; });
+  const activeTab = document.getElementById('tab-' + name);
+  if (activeTab) { activeTab.style.background = 'var(--terracotta)'; activeTab.style.color = 'white'; }
+
+  // Load data on tab open
+  if (name === 'bookings')      loadBookings();
+  if (name === 'orders')        loadOrders();
+  if (name === 'revenue')       loadRevenue();
+  if (name === 'users')         loadUsers();
+  if (name === 'menu-items')    loadMenuItems();
+  if (name === 'hotel-photos')  loadHotelPhotos();
+}
+
+// ================================================
+// LOAD STATS
+// ================================================
+async function loadStats() {
+  try {
+    const res  = await fetch('/api/admin/dashboard');
+    const data = await res.json();
+    if (!data.success) return;
+    const d = data.dashboard;
+    document.getElementById('stat-guests').textContent   = d.users.totalGuests;
+    document.getElementById('stat-bookings').textContent = d.bookings.total;
+    document.getElementById('stat-active').textContent   = d.bookings.activeGuests;
+    document.getElementById('stat-revenue').textContent  = '₹' + (d.revenue.allTime || 0).toLocaleString('en-IN');
+    document.getElementById('stat-orders').textContent   = d.orders.pending;
+    document.getElementById('stat-checkins').textContent = d.bookings.todayCheckIns;
+  } catch(e) { console.error('Stats error:', e); }
+}
+
+// ================================================
+// LOAD BOOKINGS
+// ================================================
+async function loadBookings() {
+  try {
+    const res  = await fetch('/api/admin/bookings');
+    const data = await res.json();
+    const el   = document.getElementById('bookings-list');
+    if (!data.bookings || data.bookings.length === 0) {
+      el.innerHTML = '<p style="color:var(--text-light);">Koi booking nahi</p>'; return;
+    }
+    el.innerHTML = data.bookings.map(b => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;">
+        <div>
+          <p style="font-weight:600;font-size:14px;color:var(--text);">${b.guest?.name || 'Guest'} — ${b.room?.name || 'Room'} (${b.room?.roomNumber || ''})</p>
+          <p style="font-size:12px;color:var(--text-light);margin-top:3px;">${new Date(b.checkIn).toDateString()} → ${new Date(b.checkOut).toDateString()}</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-weight:600;color:var(--terracotta);">₹${b.totalAmount}</p>
+          <select onchange="updateBookingStatus('${b._id}', this.value)" style="margin-top:6px;background:var(--cream);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:12px;">
+            ${['Pending','Confirmed','CheckedIn','CheckedOut','Cancelled'].map(s => `<option value="${s}" ${b.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { document.getElementById('bookings-list').innerHTML = '<p style="color:red;">Error loading</p>'; }
+}
+
+async function updateBookingStatus(id, status) {
+  await fetch(`/api/rooms/bookings/${id}/status`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ status })
+  });
+}
+
+// ================================================
+// LOAD ORDERS
+// ================================================
+async function loadOrders() {
+  try {
+    const res  = await fetch('/api/admin/orders/pending');
+    const data = await res.json();
+    const el   = document.getElementById('orders-list');
+    if (!data.orders || data.orders.length === 0) {
+      el.innerHTML = '<p style="color:var(--text-light);">Koi pending order nahi 🎉</p>'; return;
+    }
+    el.innerHTML = data.orders.map(o => `
+      <div style="padding:14px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div>
+            <p style="font-weight:600;font-size:14px;color:var(--text);">${o.guest?.name || 'Guest'} — ${o.orderType}</p>
+            <p style="font-size:12px;color:var(--text-light);margin-top:3px;">${o.items?.map(i => `${i.menuItem?.name} x${i.quantity}`).join(', ')}</p>
+          </div>
+          <div style="text-align:right;">
+            <p style="font-weight:600;color:var(--terracotta);">₹${o.totalAmount}</p>
+            <select onchange="updateOrderStatus('${o._id}', this.value)" style="margin-top:6px;background:var(--cream);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:12px;">
+              ${['Pending','Confirmed','Preparing','Ready','Delivered','Cancelled'].map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { document.getElementById('orders-list').innerHTML = '<p style="color:red;">Error</p>'; }
+}
+
+async function updateOrderStatus(id, status) {
+  await fetch(`/api/restaurant/orders/${id}/status`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ status })
+  });
+}
+
+// ================================================
+// LOAD USERS
+// ================================================
+async function loadUsers() {
+  try {
+    const res  = await fetch('/api/admin/users');
+    const data = await res.json();
+    const el   = document.getElementById('users-list');
+    if (!data.users || data.users.length === 0) {
+      el.innerHTML = '<p style="color:var(--text-light);">Koi user nahi</p>'; return;
+    }
+    el.innerHTML = data.users.map(u => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;">
+        <div>
+          <p style="font-weight:600;font-size:14px;color:var(--text);">${u.name}</p>
+          <p style="font-size:12px;color:var(--text-light);">${u.email}</p>
+        </div>
+        <span style="font-size:11px;padding:3px 10px;border-radius:99px;font-weight:600;${u.role==='ADMIN'?'background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;':u.role==='STAFF'?'background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;':'background:var(--cream);color:var(--text-light);border:1px solid var(--border);'}">${u.role}</span>
+      </div>
+    `).join('');
+  } catch(e) { document.getElementById('users-list').innerHTML = '<p style="color:red;">Error</p>'; }
+}
+
+// ================================================
+// ADD MENU ITEM
+// ================================================
+async function addMenuItem() {
+  const form   = document.getElementById('menuForm');
+  const result = document.getElementById('menuResult');
+  const body   = {
+    name:            form.name.value,
+    price:           Number(form.price.value),
+    category:        form.category.value,
+    spiceLevel:      form.spiceLevel.value,
+    isVeg:           form.isVeg.value === 'true',
+    preparationTime: Number(form.preparationTime.value),
+    description:     form.description.value,
+  };
+  try {
+    const res  = await fetch('/api/restaurant/menu', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    result.style.display  = 'block';
+    result.className      = data.success ? 'alert-success' : 'alert-error';
+    result.textContent    = data.success ? '✅ ' + data.item.name + ' menu mein add ho gaya!' : '❌ ' + data.message;
+    if (data.success) form.reset();
+  } catch(e) { result.style.display='block'; result.className='alert-error'; result.textContent='❌ Error'; }
+}
+
+// ================================================
+// ROOM PHOTO UPLOAD
+// ================================================
+document.getElementById('roomPhotoInput')?.addEventListener('change', function() {
+  const file = this.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('roomPreviewImg').src = e.target.result;
+      document.getElementById('roomPhotoPreview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+async function uploadRoomPhoto() {
+  const roomNum = document.getElementById('roomNumInput').value.trim();
+  const file    = document.getElementById('roomPhotoInput').files[0];
+  const result  = document.getElementById('roomPhotoResult');
+  if (!roomNum || !file) { showRes(result, false, 'Room number aur photo dono zaroori hain'); return; }
+  const fd = new FormData();
+  fd.append('photo', file);
+  fd.append('roomNumber', roomNum);
+  try {
+    const res  = await fetch('/admin/upload-photo', { method: 'POST', body: fd });
+    const data = await res.json();
+    showRes(result, data.success, data.message);
+  } catch(e) { showRes(result, false, 'Upload failed'); }
+}
+
+// ================================================
+// OWNER PHOTO UPLOAD
+// ================================================
+async function uploadOwnerPhoto(n) {
+  const name   = document.getElementById('ownerName' + n).value.trim();
+  const role   = document.getElementById('ownerRole' + n).value.trim();
+  const file   = document.getElementById('ownerPhoto' + n).files[0];
+  const result = document.getElementById('ownerResult');
+  const fd = new FormData();
+  if (name) fd.append('name', name);
+  if (role) fd.append('role', role);
+  if (file) fd.append('photo', file);
+  fd.append('ownerIndex', n);
+  try {
+    const res  = await fetch('/admin/upload-owner', { method: 'POST', body: fd });
+    const data = await res.json();
+    showRes(result, data.success, data.message);
+  } catch(e) { showRes(result, false, 'Upload failed'); }
+}
+
+// ================================================
+// ROLE CHANGE
+// ================================================
+async function changeRole() {
+  const email  = document.getElementById('userEmailInput').value.trim();
+  const role   = document.getElementById('roleSelect').value;
+  const result = document.getElementById('roleResult');
+  if (!email) { showRes(result, false, 'Email dalo'); return; }
+  try {
+    const res  = await fetch('/admin/change-role', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, role })
+    });
+    const data = await res.json();
+    showRes(result, data.success, data.message);
+  } catch(e) { showRes(result, false, 'Error'); }
+}
+
+// ================================================
+// HELPER
+// ================================================
+function showRes(el, ok, msg) {
+  el.style.display = 'block';
+  el.className     = ok ? 'alert-success' : 'alert-error';
+  el.textContent   = (ok ? '✅ ' : '❌ ') + msg;
+}
+
+// Load Revenue
+async function loadRevenue() {
+  try {
+    const res  = await fetch('/api/admin/revenue/daily');
+    const data = await res.json();
+    const el   = document.getElementById('revenue-list');
+    if (!data.data || data.data.length === 0) {
+      el.innerHTML = '<p style="color:var(--text-light);">Abhi koi revenue data nahi (Razorpay payments ke baad dikhega)</p>'; return;
+    }
+    const total = data.data.reduce((s, d) => s + d.revenue, 0);
+    el.innerHTML = `
+      <div style="background:var(--cream);border-radius:10px;padding:16px;margin-bottom:16px;display:flex;gap:24px;flex-wrap:wrap;">
+        <div><p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;">Total (30 days)</p><p style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--terracotta);font-weight:600;">₹${total.toLocaleString('en-IN')}</p></div>
+        <div><p style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;">Days with Revenue</p><p style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--terracotta);font-weight:600;">${data.data.length}</p></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:var(--cream);">
+            <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;border-radius:6px 0 0 6px;">Date</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;">Bookings</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;border-radius:0 6px 6px 0;">Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.data.reverse().map(d => `
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:10px 14px;color:var(--text);font-weight:500;">${d.date}</td>
+              <td style="padding:10px 14px;text-align:right;color:var(--text-mid);">${d.bookings}</td>
+              <td style="padding:10px 14px;text-align:right;color:var(--terracotta);font-weight:600;">₹${d.revenue.toLocaleString('en-IN')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) { document.getElementById('revenue-list').innerHTML = '<p style="color:red;">Error</p>'; }
+}
+
+// Load Menu Items
+let allMenuItems = [];
+async function loadMenuItems() {
+  try {
+    const res  = await fetch('/api/restaurant/menu?all=true');
+    const data = await res.json();
+    allMenuItems = data.menu || [];
+    renderMenu(allMenuItems);
+  } catch(e) { document.getElementById('menu-items-list').innerHTML = '<p style="color:red;">Error</p>'; }
+}
+
+function filterMenu() {
+  const q = document.getElementById('menuSearch').value.toLowerCase();
+  renderMenu(allMenuItems.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q)));
+}
+
+function renderMenu(items) {
+  const el = document.getElementById('menu-items-list');
+  if (!items.length) { el.innerHTML = '<p style="color:var(--text-light);">Koi item nahi mila</p>'; return; }
+  // Group by category
+  const byCategory = items.reduce((acc, item) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+  el.innerHTML = Object.entries(byCategory).map(([cat, catItems]) => `
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--terracotta);margin-bottom:10px;font-weight:600;">${cat} (${catItems.length})</p>
+      ${catItems.map(item => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:var(--cream);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;">${item.isVeg ? '🟢' : '🔴'}</span>
+            <span style="font-size:13px;font-weight:500;color:var(--text);">${item.name}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:14px;font-weight:600;color:var(--terracotta);">₹${item.price}</span>
+            <button onclick="deleteMenuItem('${item._id}','${item.name}')" style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;">Delete</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+async function deleteMenuItem(id, name) {
+  if (!confirm(`"${name}" delete karna chahte ho?`)) return;
+  try {
+    const res  = await fetch('/api/restaurant/menu/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) { loadMenuItems(); }
+    else alert('Error: ' + data.message);
+  } catch(e) { alert('Delete failed'); }
+}
+
+// Hotel Photos
+document.getElementById('hotelPhotoInput')?.addEventListener('change', function() {
+  const container = document.getElementById('hotelPhotoPreviewContainer');
+  container.innerHTML = '';
+  Array.from(this.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);';
+      container.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+async function uploadHotelPhotos() {
+  const files  = document.getElementById('hotelPhotoInput').files;
+  const result = document.getElementById('hotelPhotoResult');
+  if (!files.length) { showRes(result, false, 'Koi photo select nahi ki'); return; }
+  let uploaded = 0;
+  for (const file of files) {
+    const fd = new FormData();
+    fd.append('photo', file);
+    try {
+      const res  = await fetch('/admin/upload-hotel', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.success) uploaded++;
+    } catch(e) {}
+  }
+  showRes(result, uploaded > 0, `${uploaded} photo(s) upload ho gayi!`);
+  loadHotelPhotos();
+}
+
+async function loadHotelPhotos() {
+  try {
+    const res  = await fetch('/api/hotel-photos');
+    const data = await res.json();
+    const el   = document.getElementById('existingHotelPhotos');
+    if (!data.photos || !data.photos.length) {
+      el.innerHTML = '<p style="color:var(--text-light);font-size:13px;">Koi photo nahi abhi</p>'; return;
+    }
+    el.innerHTML = data.photos.map(p => `
+      <div style="position:relative;display:inline-block;">
+        <img src="${p}" style="width:100px;height:75px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+        <button onclick="deleteHotelPhoto('${p}')"
+          style="position:absolute;top:-6px;right:-6px;background:#991b1b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function deleteHotelPhoto(photoUrl) {
+  if (!confirm('Is photo ko delete karna chahte ho?')) return;
+  try {
+    const res  = await fetch('/admin/delete-hotel-photo', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ photoUrl })
+    });
+    const data = await res.json();
+    if (data.success) { loadHotelPhotos(); showRes(document.getElementById('hotelPhotoResult'), true, 'Photo delete ho gayi!'); }
+    else alert('Error: ' + data.message);
+  } catch(e) { alert('Delete failed'); }
+}
+
+// Room Multiple Photos
+document.getElementById('roomPhotoInput')?.addEventListener('change', function() {
+  const container = document.getElementById('roomPhotoPreviewContainer');
+  container.innerHTML = '';
+  Array.from(this.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);';
+      container.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+async function uploadRoomPhotos() {
+  const roomNum = document.getElementById('roomNumInput').value.trim();
+  const files   = document.getElementById('roomPhotoInput').files;
+  const result  = document.getElementById('roomPhotoResult');
+  if (!roomNum)    { showRes(result, false, 'Room number dalo'); return; }
+  if (!files.length) { showRes(result, false, 'Photos select karo'); return; }
+  const fd = new FormData();
+  fd.append('roomNumber', roomNum);
+  Array.from(files).forEach(f => fd.append('photos', f));
+  try {
+    const res  = await fetch('/admin/upload-room-multi', { method: 'POST', body: fd });
+    const data = await res.json();
+    showRes(result, data.success, data.message);
+  } catch(e) { showRes(result, false, 'Upload failed'); }
+}
+
+async function deleteOwnerPhoto(n) {
+  if (!confirm(`Owner ${n} ki photo delete karna chahte ho?`)) return;
+  const result = document.getElementById('ownerResult');
+  try {
+    const res  = await fetch('/admin/delete-owner-photo', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ ownerIndex: n })
+    });
+    const data = await res.json();
+    showRes(result, data.success, data.message);
+  } catch(e) { showRes(result, false, 'Delete failed'); }
+}
+
+// LOAD ROOM PHOTOS — Room ki existing photos load karo
+async function loadRoomPhotos() {
+  const roomNum = document.getElementById('loadRoomNumInput').value.trim();
+  const msg     = document.getElementById('existingRoomPhotosMsg');
+  const list    = document.getElementById('existingRoomPhotosList');
+  if (!roomNum) { showRes(msg, false, 'Room number dalo pehle'); return; }
+
+  msg.style.display = 'block';
+  msg.innerHTML = '<p style="color:var(--text-light);font-size:13px;">Loading...</p>';
+  list.innerHTML = '';
+
+  try {
+    const res  = await fetch('/api/rooms?all=true');
+    const data = await res.json();
+    const rooms = data.rooms || [];
+    const room  = rooms.find(r => String(r.roomNumber) === String(roomNum));
+
+    if (!room) { showRes(msg, false, 'Room "' + roomNum + '" nahi mila'); return; }
+
+    const photos = room.images || [];
+    if (!photos.length) { showRes(msg, false, 'Is room mein abhi koi photo nahi hai'); return; }
+
+    msg.style.display = 'none';
+    list.innerHTML = photos.map((url, i) =>
+      '<div class="room-photo-item" id="rphoto_' + i + '">' +
+        '<img src="' + url + '" alt="Room photo ' + (i+1) + '">' +
+        '<button class="room-photo-delete-btn" onclick="deleteRoomPhoto(\'' + room._id + '\',\'' + url + '\',\'rphoto_' + i + '\')" title="Delete photo">✕</button>' +
+        (i === 0 ? '<span class="room-photo-cover-badge">Cover</span>' : '') +
+      '</div>'
+    ).join('');
+  } catch(e) { showRes(msg, false, 'Error: ' + e.message); }
+}
+
+async function deleteRoomPhoto(roomId, photoUrl, containerId) {
+  if (!confirm('Yeh photo delete karna chahte ho?')) return;
+  const msg = document.getElementById('existingRoomPhotosMsg');
+  try {
+    const res  = await fetch('/admin/delete-room-photo', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ roomId, photoUrl })
+    });
+    const data = await res.json();
+    if (data.success) {
+      const el = document.getElementById(containerId);
+      if (el) el.remove();
+      showRes(msg, true, 'Photo delete ho gayi!');
+      loadRoomPhotos();
+    } else { showRes(msg, false, data.message || 'Delete failed'); }
+  } catch(e) { showRes(msg, false, 'Error: ' + e.message); }
+}
+
+// Init
+loadStats();
+loadBookings();
+</script>
+
+<%- include('../partials/footer') %>
