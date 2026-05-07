@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: agr-hotel
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production

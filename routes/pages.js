@@ -4,7 +4,9 @@
 // API routes se alag — yeh browser ke liye hain
 // -------------------------------------------------------
 
-const express = require("express");
+const express        = require("express");
+const HotelSettings  = require("../models/HotelSettings");
+const OwnerProfile   = require("../models/OwnerProfile");
 const Room    = require("../models/Room");
 const Booking = require("../models/Booking");
 const Review  = require("../models/Review");
@@ -27,19 +29,13 @@ router.get("/", async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(6);
 
-    // Load owners data
-    let owners = [{},{},{}];
-    let hotelPhotos = [];
-    try {
-      const fs = require("fs");
-      const ownerFile = "public/data/owners.json";
-      const hotelFile = "public/data/hotel.json";
-      if (fs.existsSync(ownerFile)) owners = JSON.parse(fs.readFileSync(ownerFile, "utf8"));
-      if (fs.existsSync(hotelFile)) {
-        const hotelData = JSON.parse(fs.readFileSync(hotelFile, "utf8"));
-        hotelPhotos = hotelData.photos || [];
-      }
-    } catch(e) {}
+    // Load owners + hotel photos from MongoDB (Railway-safe)
+    const [ownerDocs, hotelDoc] = await Promise.all([
+      OwnerProfile.find().sort({ index: 1 }),
+      HotelSettings.findOne({ key: "main" }),
+    ]);
+    const owners     = [1,2,3].map(i => ownerDocs.find(o => o.index === i) || {});
+    const hotelPhotos = (hotelDoc?.photos || []).map(p => p.url);
 
     res.render("index", {
       user:         req.user,
@@ -297,21 +293,14 @@ router.post("/admin/upload-hotel", requireLogin, requireRole("ADMIN"), async (re
 
       const result = await uploadToCloudinary(req.file.buffer, "agr-hotel/hotel");
 
-      const fs       = require("fs");
-      const dataDir  = "public/data/";
-      const dataFile = dataDir + "hotel.json";
-      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-
-      let hotel = {};
-      try { hotel = JSON.parse(fs.readFileSync(dataFile, "utf8")); } catch(e) {}
-      if (!hotel.photos)   hotel.photos   = [];
-      if (!hotel.publicIds) hotel.publicIds = [];
-
-      hotel.photos.push(result.secure_url);
-      hotel.publicIds.push(result.public_id);
-      fs.writeFileSync(dataFile, JSON.stringify(hotel, null, 2));
-
-      res.json({ success: true, message: "Hotel photo upload ho gayi!", photos: hotel.photos });
+      // MongoDB mein save karo (Railway-safe)
+      const doc = await HotelSettings.findOneAndUpdate(
+        { key: "main" },
+        { $push: { photos: { url: result.secure_url, publicId: result.public_id } } },
+        { new: true, upsert: true }
+      );
+      const photos = doc.photos.map(p => p.url);
+      res.json({ success: true, message: "Hotel photo upload ho gayi!", photos });
     });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -323,23 +312,15 @@ router.post("/admin/delete-hotel-photo", requireLogin, requireRole("ADMIN"), asy
   try {
     const { deleteFromCloudinary } = require("../services/cloudinary");
     const { photoUrl } = req.body;
-    const fs       = require("fs");
-    const dataFile = "public/data/hotel.json";
 
-    let hotel = {};
-    try { hotel = JSON.parse(fs.readFileSync(dataFile, "utf8")); } catch(e) {}
-
-    const idx = (hotel.photos || []).indexOf(photoUrl);
-    if (idx !== -1) {
-      hotel.photos.splice(idx, 1);
-      const publicId = (hotel.publicIds || [])[idx];
-      if (publicId) {
-        hotel.publicIds.splice(idx, 1);
-        await deleteFromCloudinary(publicId);
-      }
+    const doc = await HotelSettings.findOne({ key: "main" });
+    if (doc) {
+      const photo = doc.photos.find(p => p.url === photoUrl);
+      if (photo?.publicId) await deleteFromCloudinary(photo.publicId).catch(()=>{});
+      await HotelSettings.updateOne({ key: "main" }, { $pull: { photos: { url: photoUrl } } });
     }
-    fs.writeFileSync(dataFile, JSON.stringify(hotel, null, 2));
-    res.json({ success: true, message: "Photo delete ho gayi!", photos: hotel.photos });
+    const updated = await HotelSettings.findOne({ key: "main" });
+    res.json({ success: true, message: "Photo delete ho gayi!", photos: (updated?.photos||[]).map(p=>p.url) });
   } catch(error) {
     res.json({ success: false, message: error.message });
   }
@@ -354,31 +335,24 @@ router.post("/admin/upload-owner", requireLogin, requireRole("ADMIN"), async (re
     upload(req, res, async (err) => {
       if (err) return res.json({ success: false, message: err.message });
 
-      const fs        = require("fs");
-      const ownerFile = "public/data/owners.json";
-      const dataDir   = "public/data/";
-      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-
-      let owners = [{},{},{}];
-      try { owners = JSON.parse(fs.readFileSync(ownerFile, "utf8")); } catch(e) {}
-
-      const idx = parseInt(req.body.ownerIndex) - 1;
-      if (!owners[idx]) owners[idx] = {};
-
-      if (req.body.name) owners[idx].name = req.body.name;
-      if (req.body.role) owners[idx].role = req.body.role;
+      const ownerIdx = parseInt(req.body.ownerIndex);
+      const update = {};
+      if (req.body.name) update.name = req.body.name;
+      if (req.body.role) update.role = req.body.role;
 
       if (req.file) {
-        // Purani photo delete karo
-        if (owners[idx].publicId) {
-          await deleteFromCloudinary(owners[idx].publicId);
-        }
+        const existing = await OwnerProfile.findOne({ index: ownerIdx });
+        if (existing?.publicId) await deleteFromCloudinary(existing.publicId).catch(()=>{});
         const result = await uploadToCloudinary(req.file.buffer, "agr-hotel/owners");
-        owners[idx].photo    = result.secure_url;
-        owners[idx].publicId = result.public_id;
+        update.photo    = result.secure_url;
+        update.publicId = result.public_id;
       }
 
-      fs.writeFileSync(ownerFile, JSON.stringify(owners, null, 2));
+      await OwnerProfile.findOneAndUpdate(
+        { index: ownerIdx },
+        { $set: update },
+        { upsert: true, new: true }
+      );
       res.json({ success: true, message: `Owner ${req.body.ownerIndex} update ho gaya!` });
     });
   } catch (error) {
@@ -390,18 +364,10 @@ router.post("/admin/upload-owner", requireLogin, requireRole("ADMIN"), async (re
 router.post("/admin/delete-owner-photo", requireLogin, requireRole("ADMIN"), async (req, res) => {
   try {
     const { deleteFromCloudinary } = require("../services/cloudinary");
-    const fs        = require("fs");
-    const ownerFile = "public/data/owners.json";
-    let owners = [{},{},{}];
-    try { owners = JSON.parse(fs.readFileSync(ownerFile, "utf8")); } catch(e) {}
-
-    const idx = parseInt(req.body.ownerIndex) - 1;
-    if (owners[idx] && owners[idx].publicId) {
-      await deleteFromCloudinary(owners[idx].publicId);
-      owners[idx].photo    = null;
-      owners[idx].publicId = null;
-    }
-    fs.writeFileSync(ownerFile, JSON.stringify(owners, null, 2));
+    const ownerIdx = parseInt(req.body.ownerIndex);
+    const owner = await OwnerProfile.findOne({ index: ownerIdx });
+    if (owner?.publicId) await deleteFromCloudinary(owner.publicId).catch(()=>{});
+    await OwnerProfile.findOneAndUpdate({ index: ownerIdx }, { $set: { photo: "", publicId: "" } });
     res.json({ success: true, message: `Owner ${req.body.ownerIndex} ki photo delete ho gayi!` });
   } catch(error) {
     res.json({ success: false, message: error.message });
@@ -442,15 +408,10 @@ router.post("/admin/upload-room-multi", requireLogin, requireRole("ADMIN"), asyn
 });
 
 // GET /api/hotel-photos
-router.get("/api/hotel-photos", (req, res) => {
+router.get("/api/hotel-photos", async (req, res) => {
   try {
-    const fs       = require("fs");
-    const dataFile = "public/data/hotel.json";
-    let photos     = [];
-    if (fs.existsSync(dataFile)) {
-      const data = JSON.parse(fs.readFileSync(dataFile, "utf8"));
-      photos = data.photos || [];
-    }
+    const doc    = await HotelSettings.findOne({ key: "main" });
+    const photos = (doc?.photos || []).map(p => p.url);
     res.json({ success: true, photos });
   } catch(e) {
     res.json({ success: true, photos: [] });
